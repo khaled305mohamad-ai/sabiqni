@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>تطبيق سابقني | منصة التحديات</title>
+    <!-- مكتبة Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- خط تجوال العربي -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- مكتبة الأيقونات Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: #0b0f19;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="text-slate-100 flex justify-center min-h-screen">
+
+    <div id="app-container" class="w-full max-w-md bg-slate-900 min-h-screen flex flex-col shadow-2xl relative border-x border-slate-800 pb-20">
+
+        <!-- ================= 1. شاشة الدخول ================= -->
+        <section id="screen-auth" class="flex-1 flex flex-col items-center justify-center p-6 text-center">
+            <div class="w-20 h-20 bg-gradient-to-tr from-amber-500 to-violet-600 rounded-3xl flex items-center justify-center shadow-lg shadow-violet-500/30 mb-4 animate-bounce">
+                <i class="fa-solid fa-bolt text-3xl text-white"></i>
+            </div>
+            <h1 class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-violet-400 mb-1">سابقني</h1>
+            <p class="text-slate-400 text-xs mb-6">منصة التحديات، التنافس، واقتناص النقاط</p>
+            
+            <div class="w-full bg-slate-800/90 p-5 rounded-2xl border border-slate-700/70 shadow-xl">
+                <div class="flex bg-slate-900 p-1 rounded-xl mb-4 text-xs font-bold">
+                    <button id="btn-toggle-login" onclick="setAuthMode('login')" class="flex-1 py-2 rounded-lg bg-violet-600 text-white transition">تسجيل الدخول</button>
+                    <button id="btn-toggle-register" onclick="setAuthMode('register')" class="flex-1 py-2 rounded-lg text-slate-400 hover:text-white transition">حساب جديد</button>
+                </div>
+
+                <div class="space-y-3 text-right">
+                    <div>
+                        <label class="block text-xs text-slate-300 font-bold mb-1">اسم المستخدم:</label>
+                        <input type="text" id="auth-username" placeholder="اكتب اسمك..." class="w-full p-3 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none focus:border-violet-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-300 font-bold mb-1">كلمة المرور:</label>
+                        <div class="relative">
+                            <input type="password" id="auth-password" placeholder="••••••••" class="w-full p-3 pl-10 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none focus:border-violet-500">
+                            <button type="button" onclick="togglePasswordVisibility('auth-password', 'eye-icon-login')" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200">
+                                <i id="eye-icon-login" class="fa-solid fa-eye text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button onclick="handleAuth()" id="auth-submit-btn" class="w-full mt-2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-black py-3 rounded-xl shadow-lg shadow-indigo-600/30 active:scale-95 transition text-sm">
+                        دخول <i class="fa-solid fa-arrow-left mr-1"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= 2. الشاشة الرئيسية ================= -->
+        <div id="screen-main" class="hidden flex-1 flex flex-col">
+            
+            <header class="bg-slate-800/95 backdrop-blur-md sticky top-0 z-20 border-b border-slate-700/60 p-3.5">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <div id="user-avatar-box" class="w-10 h-10 rounded-full bg-gradient-to-tr from-violet-600 to-amber-500 flex items-center justify-center font-black text-white text-base shadow-md">
+                            <span id="user-avatar">س</span>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-1.5">
+                                <span id="user-display-name" class="font-bold text-sm text-white">اسم المستخدم</span>
+                                <span id="owner-badge" class="hidden text-[10px] bg-amber-500 text-slate-950 px-2 py-0.5 rounded-full font-black">
+                                    <i class="fa-solid fa-crown"></i> المالك
+                                </span>
+                            </div>
+                            <div class="text-[11px] text-slate-400" id="user-role-label">متسابق رسمي</div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <div class="bg-amber-500/20 border border-amber-500/40 text-amber-400 px-3 py-1 rounded-full flex items-center gap-1.5 font-black text-xs">
+                            <i class="fa-solid fa-coins text-amber-400"></i>
+                            <span id="user-points">0</span>
+                        </div>
+                        <button id="owner-panel-trigger" onclick="openOwnerDashboard()" class="hidden bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 px-2.5 py-1.5 rounded-xl font-black text-xs shadow-md active:scale-95 transition">
+                            <i class="fa-solid fa-sliders"></i> لوحة المالك
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <main class="flex-1 p-4 overflow-y-auto no-scrollbar">
+                
+                <!-- 1. المهام -->
+                <section id="tab-tasks" class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-base font-black text-white flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-violet-400"></i> المهام والتحديات
+                        </h2>
+                        <span class="text-[11px] bg-violet-500/20 text-violet-300 px-2 py-0.5 rounded-md font-bold">سباق النقاط</span>
+                    </div>
+
+                    <div class="bg-rose-500/10 border border-rose-500/30 p-2.5 rounded-xl text-rose-300 text-[11px] flex items-center gap-2">
+                        <i class="fa-solid fa-stopwatch text-sm"></i>
+                        <span>قانون سابقني: إنجاز المهمة = كامل النقاط. انتهاء الوقت = <b>خصم النصف</b>!</span>
+                    </div>
+
+                    <div id="active-tasks-container" class="space-y-2"></div>
+                    <div class="border-t border-slate-800 my-3"></div>
+                    <div class="text-xs font-bold text-slate-400">المهام المتاحة:</div>
+                    <div id="available-tasks-list" class="space-y-2.5"></div>
+                </section>
+
+                <!-- 2. الأسعار -->
+                <section id="tab-prices" class="hidden space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-base font-black text-white flex items-center gap-2">
+                            <i class="fa-solid fa-chart-line text-amber-400"></i> بورصة النقاط والأسعار
+                        </h2>
+                        <span class="text-[11px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-md font-bold">محدثة بأمر المالك</span>
+                    </div>
+                    <div id="rates-list" class="space-y-2.5"></div>
+                </section>
+
+                <!-- 3. السوق -->
+                <section id="tab-market" class="hidden space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-base font-black text-white flex items-center gap-2">
+                            <i class="fa-solid fa-store text-emerald-400"></i> سوق الجوائز
+                        </h2>
+                        <span class="text-[11px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-md font-bold">استبدل نقاطك</span>
+                    </div>
+                    <div id="market-items-list" class="grid grid-cols-2 gap-3"></div>
+                    <div class="border-t border-slate-800 pt-3 mt-4">
+                        <h3 class="text-xs font-bold text-slate-400 mb-2 flex items-center gap-1.5">
+                            <i class="fa-solid fa-bag-shopping"></i> حقيبة مقتنياتي:
+                        </h3>
+                        <div id="purchased-items-list" class="space-y-2"></div>
+                    </div>
+                </section>
+
+                <!-- 4. الاقتراحات (للمتسابق) -->
+                <section id="tab-suggestions" class="hidden space-y-4">
+                    <h2 class="text-base font-black text-white flex items-center gap-2">
+                        <i class="fa-solid fa-lightbulb text-yellow-400"></i> صندوق الاقتراحات
+                    </h2>
+                    <div class="bg-slate-800/80 p-4 rounded-2xl border border-slate-700">
+                        <p class="text-xs text-slate-300 mb-3 leading-relaxed">اكتب فكرتك أو مقترحك لتطوير المسابقة، وستصل مباشرة إلى لوحة تحكم المالك مسجلة باسمك ليقرر مكافأتك عليها بالنقاط!</p>
+                        <textarea id="suggestion-text" rows="3" placeholder="اكتب فكرتك واقتراحك هنا بالتفصيل..." class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-violet-500 mb-3"></textarea>
+                        
+                        <button onclick="submitSuggestion()" class="w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold py-2.5 rounded-xl shadow-md text-xs transition flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-paper-plane"></i> إرسال المقترح للمالك
+                        </button>
+                    </div>
+
+                    <div class="text-xs font-bold text-slate-400 mt-4 mb-2">اقتراحاتك السابقة المرسلة:</div>
+                    <div id="user-suggestions-history" class="space-y-2"></div>
+                </section>
+
+            </main>
+
+            <!-- القوائم السفلية -->
+            <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-slate-800/95 backdrop-blur-lg border-t border-slate-700/80 px-2 py-2 flex justify-around items-center z-30">
+                <button onclick="switchTab('tasks')" id="btn-tab-tasks" class="nav-btn text-violet-400 flex flex-col items-center text-[10px] font-bold p-1">
+                    <i class="fa-solid fa-list-check text-base mb-1"></i>
+                    <span>المهام</span>
+                </button>
+                <button onclick="switchTab('prices')" id="btn-tab-prices" class="nav-btn text-slate-400 flex flex-col items-center text-[10px] font-bold p-1">
+                    <i class="fa-solid fa-chart-line text-base mb-1"></i>
+                    <span>الأسعار</span>
+                </button>
+                <button onclick="switchTab('market')" id="btn-tab-market" class="nav-btn text-slate-400 flex flex-col items-center text-[10px] font-bold p-1">
+                    <i class="fa-solid fa-store text-base mb-1"></i>
+                    <span>السوق</span>
+                </button>
+                <button onclick="switchTab('suggestions')" id="btn-tab-suggestions" class="nav-btn text-slate-400 flex flex-col items-center text-[10px] font-bold p-1">
+                    <i class="fa-solid fa-lightbulb text-base mb-1"></i>
+                    <span>الاقتراحات</span>
+                </button>
+                <button onclick="logoutUser()" class="text-rose-400 hover:text-rose-300 flex flex-col items-center text-[10px] font-bold p-1">
+                    <i class="fa-solid fa-right-from-bracket text-base mb-1"></i>
+                    <span>خروج</span>
+                </button>
+            </nav>
+        </div>
+
+        <!-- ================= 3. لوحة تحكم المالك الكاملة ================= -->
+        <div id="modal-owner-dashboard" class="hidden fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-3">
+            <div class="bg-slate-800 border-2 border-amber-500/60 w-full max-w-md rounded-2xl p-4 max-h-[90vh] overflow-y-auto no-scrollbar shadow-2xl flex flex-col">
+                
+                <div class="flex items-center justify-between pb-3 border-b border-slate-700 mb-3">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-crown text-amber-400 text-lg"></i>
+                        <h3 class="font-black text-white text-sm">لوحة تحكم المالك</h3>
+                    </div>
+                    <button onclick="closeOwnerDashboard()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+                </div>
+
+                <!-- شريط أزرار تبويبات المالك الأربعة -->
+                <div class="grid grid-cols-4 gap-1 bg-slate-900 p-1 rounded-xl mb-4 text-[10px] font-bold text-center">
+                    <button onclick="switchOwnerTab('competitors')" id="otab-btn-competitors" class="py-1.5 rounded-lg bg-amber-500 text-slate-950 font-black">المتنافسين</button>
+                    <button onclick="switchOwnerTab('suggestions')" id="otab-btn-suggestions" class="py-1.5 rounded-lg text-slate-400 hover:text-white">الاقتراحات</button>
+                    <button onclick="switchOwnerTab('tasks')" id="otab-btn-tasks" class="py-1.5 rounded-lg text-slate-400 hover:text-white">المهام</button>
+                    <button onclick="switchOwnerTab('market')" id="otab-btn-market" class="py-1.5 rounded-lg text-slate-400 hover:text-white">السوق</button>
+                </div>
+
+                <!-- 1. صندوق الاقتراحات الواردة للمالك -->
+                <div id="owner-sec-suggestions" class="hidden space-y-3">
+                    <!-- خيار ربط واتساب المالك لتصله الاقتراحات خارج التطبيق -->
+                    <div class="bg-slate-900 p-3 rounded-xl border border-slate-700 space-y-2">
+                        <div class="text-[11px] font-bold text-amber-400 flex items-center gap-1.5">
+                            <i class="fa-brands fa-whatsapp text-emerald-400 text-sm"></i>
+                            <span>تفعيل استلام الاقتراحات على واتسابك:</span>
+                        </div>
+                        <div class="flex gap-1.5">
+                            <input type="text" id="owner-wa-phone" placeholder="رقمك مع مفتاح الدولة (مثال: 966500000000)" class="flex-1 bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white">
+                            <button onclick="saveOwnerWhatsApp()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 rounded-lg text-xs">حفظ</button>
+                        </div>
+                        <p class="text-[10px] text-slate-400">عند حفظ رقمك، سيتمكن المتسابق من إرسال فكرته مباشرة إلى محادثتك على الواتساب بضغطة زر واحدة!</p>
+                    </div>
+
+                    <div class="text-xs font-bold text-amber-400 flex items-center justify-between mt-2">
+                        <span>الاقتراحات المسجلة في التطبيق:</span>
+                        <span id="owner-suggestions-count" class="text-[10px] bg-slate-700 text-white px-2 py-0.5 rounded-full">0</span>
+                    </div>
+                    <div id="owner-suggestions-inbox" class="space-y-2.5"></div>
+                </div>
+
+                <!-- 2. المتنافسين -->
+                <div id="owner-sec-competitors" class="space-y-3">
+                    <div class="text-xs font-bold text-amber-400 flex items-center justify-between">
+                        <span>المتنافسين المسجلين:</span>
+                        <span id="competitors-count" class="text-[10px] bg-slate-700 px-2 py-0.5 rounded-full text-white">0</span>
+                    </div>
+                    <div id="owner-competitors-list" class="space-y-2"></div>
+                </div>
+
+                <!-- 3. إضافة مهام -->
+                <div id="owner-sec-tasks" class="hidden space-y-3">
+                    <div class="bg-slate-900 p-3 rounded-xl border border-slate-700 space-y-2.5">
+                        <div class="text-xs font-black text-amber-400">إضافة مهمة جديدة فورا:</div>
+                        <input type="text" id="om-task-title" placeholder="اسم المهمة..." class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white">
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="number" id="om-task-points" placeholder="النقاط (مثلا 100)" class="bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white">
+                            <input type="number" id="om-task-minutes" placeholder="الوقت بالدقائق" class="bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white">
+                        </div>
+                        <input type="text" id="om-task-cat" placeholder="التصنيف (حركية، لياقة..)" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white">
+                        <button onclick="ownerAddTask()" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black py-2 rounded-lg text-xs">
+                            <i class="fa-solid fa-plus ml-1"></i> نشر المهمة للجميع
+                        </button>
+                    </div>
+
+                    <div class="text-xs font-bold text-slate-400 mt-2">المهام الحالية:</div>
+                    <div id="owner-current-tasks" class="space-y-2"></div>
+                </div>
+
+                <!-- 4. السوق والأسعار -->
+                <div id="owner-sec-market" class="hidden space-y-3">
+                    <div class="bg-slate-900 p-3 rounded-xl border border-slate-700 space-y-2">
+                        <div class="text-xs font-black text-emerald-400">إضافة سلعة جديدة للسوق:</div>
+                        <input type="text" id="om-item-title" placeholder="اسم الجائزة..." class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white">
+                        <input type="number" id="om-item-price" placeholder="سعرها بالنقاط..." class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white">
+                        <button onclick="ownerAddMarketItem()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-2 rounded-lg text-xs">
+                            <i class="fa-solid fa-cart-plus ml-1"></i> إدراج السلعة في السوق
+                        </button>
+                    </div>
+
+                    <div class="text-xs font-bold text-amber-400 mt-2">تعديل أسعار السلع الحالية:</div>
+                    <div id="owner-market-items-manage" class="space-y-2"></div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ================= البرمجة ================= -->
+    <script>
+        const OWNER_SECRET = "kmn";
+
+        const defaultTasks = [
+            { id: 1, title: "مشي أو ركض سريع 20 دقيقة", points: 100, minutes: 20, category: "حركية مرتفعة" },
+            { id: 2, title: "قراءة 15 صفحة بدون انقطاع", points: 70, minutes: 30, category: "ثقافة" },
+            { id: 3, title: "ترتيب وتنظيف المكان بالكامل", points: 50, minutes: 15, category: "تنظيم" }
+        ];
+
+        const defaultMarket = [
+            { id: 1, title: "إعفاء من مهمة محددة", price: 150, icon: "fa-shield" },
+            { id: 2, title: "كوب قهوة على حساب الفريق", price: 220, icon: "fa-mug-hot" },
+            { id: 3, title: "وسام بطل الأسبوع الذهبي", price: 350, icon: "fa-medal" }
+        ];
+
+        const defaultRates = [
+            { title: "المهام الحركية والرياضية", rate: "مرتفعة جداً (+100%)", note: "النقاط مضاعفة هذا الأسبوع لتشجيع الحركة والنشاط!", trend: "up" },
+            { title: "مهام القراءة والتعلم", rate: "سعر مستقر ومجزٍ", note: "نقاط ممتازة ومستمرة", trend: "steady" }
+        ];
+
+        let users = JSON.parse(localStorage.getItem('sabiqni_users_db')) || [
+            { username: "سالم", password: "123", points: 150, role: "competitor" },
+            { username: "فهد", password: "123", points: 80, role: "competitor" }
+        ];
+
+        let currentUser = JSON.parse(localStorage.getItem('sabiqni_auth_user')) || null;
+        let tasksList = JSON.parse(localStorage.getItem('sabiqni_tasks_db')) || defaultTasks;
+        let marketItems = JSON.parse(localStorage.getItem('sabiqni_market_db')) || defaultMarket;
+        let activeTasks = JSON.parse(localStorage.getItem('sabiqni_active_tasks')) || [];
+        let suggestions = JSON.parse(localStorage.getItem('sabiqni_suggestions_db')) || [];
+        let purchases = JSON.parse(localStorage.getItem('sabiqni_purchases_db')) || [];
+        let ownerPhone = localStorage.getItem('sabiqni_owner_phone') || '';
+
+        let authMode = 'login';
+
+        window.onload = function() {
+            if (currentUser) {
+                showMainScreen();
+            } else {
+                showAuthScreen();
+            }
+            setInterval(updateTimers, 1000);
+        };
+
+        function togglePasswordVisibility(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.remove("fa-eye");
+                icon.classList.add("fa-eye-slash");
+            } else {
+                input.type = "password";
+                icon.classList.remove("fa-eye-slash");
+                icon.classList.add("fa-eye");
+            }
+        }
+
+        function setAuthMode(mode) {
+            authMode = mode;
+            if (mode === 'login') {
+                document.getElementById('btn-toggle-login').className = "flex-1 py-2 rounded-lg bg-violet-600 text-white font-bold transition";
+                document.getElementById('btn-toggle-register').className = "flex-1 py-2 rounded-lg text-slate-400 hover:text-white transition";
+                document.getElementById('auth-submit-btn').innerHTML = 'دخول <i class="fa-solid fa-arrow-left mr-1"></i>';
+            } else {
+                document.getElementById('btn-toggle-register').className = "flex-1 py-2 rounded-lg bg-violet-600 text-white font-bold transition";
+                document.getElementById('btn-toggle-login').className = "flex-1 py-2 rounded-lg text-slate-400 hover:text-white transition";
+                document.getElementById('auth-submit-btn').innerHTML = 'تسجيل حساب جديد <i class="fa-solid fa-user-plus mr-1"></i>';
+            }
+        }
+
+        function showAuthScreen() {
+            document.getElementById('screen-auth').classList.remove('hidden');
+            document.getElementById('screen-main').classList.add('hidden');
+        }
+
+        function handleAuth() {
+            const usernameInput = document.getElementById('auth-username').value.trim();
+            const passwordInput = document.getElementById('auth-password').value.trim();
+
+            if (!usernameInput || !passwordInput) {
+                alert("يرجى إدخال اسم المستخدم وكلمة المرور!");
+                return;
+            }
+
+            if (passwordInput === OWNER_SECRET) {
+                currentUser = {
+                    username: usernameInput || "المالك",
+                    role: "owner",
+                    points: 9999
+                };
+                localStorage.setItem('sabiqni_auth_user', JSON.stringify(currentUser));
+                showMainScreen();
+                alert(`أهلاً بك يا ${currentUser.username} 👑! تم تفعيل صلاحيات المالك.`);
+                return;
+            }
+
+            if (authMode === 'register') {
+                const exists = users.find(u => u.username.toLowerCase() === usernameInput.toLowerCase());
+                if (exists) {
+                    alert("هذا الاسم مسجل مسبقاً، اختر اسماً آخر.");
+                    return;
+                }
+                const newUser = {
+                    username: usernameInput,
+                    password: passwordInput,
+                    points: 100,
+                    role: "competitor"
+                };
+                users.push(newUser);
+                saveUsers();
+                currentUser = newUser;
+                localStorage.setItem('sabiqni_auth_user', JSON.stringify(currentUser));
+                showMainScreen();
+                alert(`تم إنشاء حسابك بنجاح! مرحباً بك يا ${currentUser.username}.`);
+            } else {
+                const user = users.find(u => u.username.toLowerCase() === usernameInput.toLowerCase() && u.password === passwordInput);
+                if (!user) {
+                    alert("اسم المستخدم أو كلمة المرور غير صحيحة!");
+                    return;
+                }
+                currentUser = user;
+                localStorage.setItem('sabiqni_auth_user', JSON.stringify(currentUser));
+                showMainScreen();
+            }
+        }
+
+        function showMainScreen() {
+            document.getElementById('screen-auth').classList.add('hidden');
+            document.getElementById('screen-main').classList.remove('hidden');
+
+            document.getElementById('user-display-name').innerText = currentUser.username;
+            document.getElementById('user-avatar').innerText = currentUser.username.charAt(0);
+
+            if (currentUser.role === 'owner') {
+                document.getElementById('owner-badge').classList.remove('hidden');
+                document.getElementById('owner-panel-trigger').classList.remove('hidden');
+                document.getElementById('user-role-label').innerText = "مالك التطبيق والمشرف العام";
+                document.getElementById('user-points').innerText = "∞";
+            } else {
+                document.getElementById('owner-badge').classList.add('hidden');
+                document.getElementById('owner-panel-trigger').classList.add('hidden');
+                document.getElementById('user-role-label').innerText = "متسابق رسمي";
+                syncUserPoints();
+            }
+
+            renderTasks();
+            renderRates();
+            renderMarket();
+            renderSuggestions();
+        }
+
+        function syncUserPoints() {
+            if (currentUser.role === 'owner') return;
+            const live = users.find(u => u.username === currentUser.username);
+            if (live) {
+                currentUser.points = live.points;
+                document.getElementById('user-points').innerText = currentUser.points;
+                localStorage.setItem('sabiqni_auth_user', JSON.stringify(currentUser));
+            }
+        }
+
+        function logoutUser() {
+            if (confirm("هل تريد تسجيل الخروج؟")) {
+                currentUser = null;
+                localStorage.removeItem('sabiqni_auth_user');
+                showAuthScreen();
+            }
+        }
+
+        function saveUsers() {
+            localStorage.setItem('sabiqni_users_db', JSON.stringify(users));
+        }
+
+        // ================= صندوق الاقتراحات وإرسالها للمالك =================
+        function submitSuggestion() {
+            const txt = document.getElementById('suggestion-text').value.trim();
+            if (!txt) return alert("يرجى كتابة فكرتك أو اقتراحك أولاً!");
+
+            const newSug = {
+                id: Date.now(),
+                user: currentUser.username,
+                text: txt,
+                time: new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }),
+                date: new Date().toLocaleDateString('ar-SA')
+            };
+
+            suggestions.unshift(newSug);
+            localStorage.setItem('sabiqni_suggestions_db', JSON.stringify(suggestions));
+            document.getElementById('suggestion-text').value = '';
+            renderSuggestions();
+
+            // فحص إذا كان المالك واضعاً رقم واتسابه
+            const savedPhone = localStorage.getItem('sabiqni_owner_phone');
+            if (savedPhone) {
+                if (confirm("تم تسجيل اقتراحك بنجاح في التطبيق! هل تود أيضاً إرساله فوراً إلى واتساب المالك مباشرة؟")) {
+                    const waMsg = encodeURIComponent(`💡 اقتراح جديد في مسابقة سابقني:\nمن المتسابق: ${currentUser.username}\nنص الاقتراح: ${txt}`);
+                    window.open(`https://wa.me/${savedPhone}?text=${waMsg}`, '_blank');
+                }
+            } else {
+                alert("تم إرسال اقتراحك للمالك بنجاح! سيظهر في لوحة تحكم المالك فوراً.");
+            }
+        }
+
+        function renderSuggestions() {
+            const cont = document.getElementById('user-suggestions-history');
+            cont.innerHTML = '';
+            const mySugs = suggestions.filter(s => s.user === currentUser.username);
+            if (mySugs.length === 0) {
+                cont.innerHTML = '<div class="text-[11px] text-slate-500">لا توجد اقتراحات سابقة لك.</div>';
+            } else {
+                mySugs.forEach(s => {
+                    const d = document.createElement('div');
+                    d.className = "bg-slate-800 p-2 rounded-lg text-xs text-slate-300";
+                    d.innerHTML = `<div>${s.text}</div><div class="text-[9px] text-slate-500 text-left mt-1">${s.date} - ${s.time}</div>`;
+                    cont.appendChild(d);
+                });
+            }
+        }
+
+        // حفظ رقم واتساب المالك
+        function saveOwnerWhatsApp() {
+            const phone = document.getElementById('owner-wa-phone').value.trim().replace('+', '');
+            if (!phone) return alert("اكتب رقم الجوال مع رمز الدولة (مثال: 966500000000)!");
+            localStorage.setItem('sabiqni_owner_phone', phone);
+            alert("تم حفظ رقم واتسابك بنجاح! الآن ستصلك اقتراحات المتسابقين على هذا الرقم.");
+        }
+
+        // عرض الاقتراحات في لوحة تحكم المالك
+        function renderOwnerSuggestions() {
+            const cont = document.getElementById('owner-suggestions-inbox');
+            document.getElementById('owner-suggestions-count').innerText = `${suggestions.length} اقتراح`;
+            const phoneInput = document.getElementById('owner-wa-phone');
+            if (phoneInput) {
+                phoneInput.value = localStorage.getItem('sabiqni_owner_phone') || '';
+            }
+
+            cont.innerHTML = '';
+            if (suggestions.length === 0) {
+                cont.innerHTML = '<div class="text-xs text-slate-400 text-center py-4">صندوق الوارد فارغ. لم يرسل المتسابقون أي مقترحات بعد.</div>';
+                return;
+            }
+
+            suggestions.forEach((s, idx) => {
+                const box = document.createElement('div');
+                box.className = "bg-slate-900 p-3 rounded-xl border border-slate-700/80 space-y-2";
+                box.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-6 h-6 rounded-full bg-violet-600/40 text-violet-300 flex items-center justify-center text-[10px] font-bold">
+                                ${s.user.charAt(0)}
+                            </span>
+                            <span class="font-bold text-xs text-white">${s.user}</span>
+                        </div>
+                        <span class="text-[10px] text-slate-500">${s.date || ''} ${s.time}</span>
+                    </div>
+
+                    <div class="bg-slate-800/80 p-2.5 rounded-lg text-xs text-slate-200 leading-relaxed border border-slate-700/50">
+                        ${s.text}
+                    </div>
+
+                    <div class="flex items-center justify-between pt-1 text-[11px] font-bold">
+                        <button onclick="rewardSuggester('${s.user}', 50)" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded-lg flex items-center gap-1 active:scale-95 transition">
+                            <i class="fa-solid fa-gift"></i> مكافأة المتسابق +50 نقطة
+                        </button>
+                        <button onclick="deleteSuggestion(${idx})" class="text-rose-400 hover:text-rose-300 p-1">
+                            <i class="fa-solid fa-trash-can"></i> حذف
+                        </button>
+                    </div>
+                `;
+                cont.appendChild(box);
+            });
+        }
+
+        // مكافأة صاحب الاقتراح
+        function rewardSuggester(username, points) {
+            const user = users.find(u => u.username === username);
+            if (!user) {
+                alert("لم يتم العثور على هذا المتسابق في النظام!");
+                return;
+            }
+            user.points += points;
+            saveUsers();
+            syncUserPoints();
+            alert(`كفو! تم منح المتسابق (${username}) مكافأة قدرها ${points} نقطة بنجاح لدعمه بأفكار مميزة!`);
+        }
+
+        function deleteSuggestion(idx) {
+            if (confirm("هل تريد حذف هذا المقترح من الصندوق؟")) {
+                suggestions.splice(idx, 1);
+                localStorage.setItem('sabiqni_suggestions_db', JSON.stringify(suggestions));
+                renderOwnerSuggestions();
+                renderSuggestions();
+            }
+        }
+
+        // ================= لوحة تحكم المالك =================
+        function openOwnerDashboard() {
+            document.getElementById('modal-owner-dashboard').classList.remove('hidden');
+            switchOwnerTab('suggestions'); // يفتح فوراً على الاقتراحات
+        }
+
+        function closeOwnerDashboard() {
+            document.getElementById('modal-owner-dashboard').classList.add('hidden');
+        }
+
+        function switchOwnerTab(tab) {
+            ['competitors', 'suggestions', 'tasks', 'market'].forEach(t => {
+                document.getElementById(`owner-sec-${t}`).classList.add('hidden');
+                document.getElementById(`otab-btn-${t}`).className = "py-1.5 rounded-lg text-slate-400 hover:text-white";
+            });
+            document.getElementById(`owner-sec-${tab}`).classList.remove('hidden');
+            document.getElementById(`otab-btn-${tab}`).className = "py-1.5 rounded-lg bg-amber-500 text-slate-950 font-black";
+
+            if (tab === 'competitors') renderOwnerCompetitors();
+            if (tab === 'suggestions') renderOwnerSuggestions();
+            if (tab === 'tasks') renderOwnerTasks();
+            if (tab === 'market') renderOwnerMarket();
+        }
+
+        // إدارة المتنافسين
+        function renderOwnerCompetitors() {
+            const list = document.getElementById('owner-competitors-list');
+            document.getElementById('competitors-count').innerText = `${users.length} متسابقين`;
+            list.innerHTML = '';
+
+            users.forEach((user, index) => {
+                const card = document.createElement('div');
+                card.className = "bg-slate-900 p-3 rounded-xl border border-slate-700/80 space-y-2";
+                card.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <span class="font-black text-xs text-white">${user.username}</span>
+                            <span class="text-[10px] text-slate-400 block">
+                                كلمة المرور: <span id="pass-display-${index}" class="text-amber-400 font-mono">••••••</span>
+                                <button onclick="toggleUserPassDisplay(${index})" class="text-[9px] text-slate-500 hover:text-slate-300 mr-1"><i class="fa-solid fa-eye"></i></button>
+                            </span>
+                        </div>
+                        <div class="text-xs font-black text-amber-400 bg-amber-500/10 px-2 py-1 rounded-md">
+                            ${user.points} نقطة
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-1.5 pt-1 border-t border-slate-800 text-[10px] font-bold">
+                        <button onclick="ownerModifyPoints(${index}, 50)" class="bg-emerald-600/30 text-emerald-300 hover:bg-emerald-600/50 py-1.5 rounded-lg border border-emerald-500/30">
+                            <i class="fa-solid fa-plus"></i> 50 نقطة
+                        </button>
+                        <button onclick="ownerModifyPoints(${index}, -50)" class="bg-rose-600/30 text-rose-300 hover:bg-rose-600/50 py-1.5 rounded-lg border border-rose-500/30">
+                            <i class="fa-solid fa-minus"></i> 50 نقطة
+                        </button>
+                        <button onclick="ownerChangeUserPassword(${index})" class="bg-violet-600/40 text-violet-300 hover:bg-violet-600/60 py-1.5 rounded-lg border border-violet-500/30">
+                            <i class="fa-solid fa-key"></i> تعديل الرمز
+                        </button>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        function toggleUserPassDisplay(index) {
+            const el = document.getElementById(`pass-display-${index}`);
+            if (el.innerText === '••••••') {
+                el.innerText = users[index].password;
+            } else {
+                el.innerText = '••••••';
+            }
+        }
+
+        function ownerModifyPoints(userIndex, delta) {
+            users[userIndex].points = Math.max(0, users[userIndex].points + delta);
+            saveUsers();
+            renderOwnerCompetitors();
+            syncUserPoints();
+        }
+
+        function ownerChangeUserPassword(userIndex) {
+            const user = users[userIndex];
+            const newPass = prompt(`أدخل كلمة المرور الجديدة للمتسابق (${user.username}):`);
+            if (newPass && newPass.trim() !== '') {
+                users[userIndex].password = newPass.trim();
+                saveUsers();
+                renderOwnerCompetitors();
+                alert(`تم تحديث كلمة المرور بنجاح!`);
+            }
+        }
+
+        // إدارة المهام
+        function renderOwnerTasks() {
+            const cont = document.getElementById('owner-current-tasks');
+            cont.innerHTML = '';
+            tasksList.forEach((t, i) => {
+                const el = document.createElement('div');
+                el.className = "bg-slate-900 p-2.5 rounded-xl border border-slate-800 flex items-center justify-between text-xs";
+                el.innerHTML = `
+                    <div>
+                        <div class="font-bold text-white">${t.title}</div>
+                        <div class="text-[10px] text-slate-400">${t.points} نقطة | ${t.minutes} دقيقة</div>
+                    </div>
+                    <button onclick="ownerDeleteTask(${i})" class="text-rose-400 hover:text-rose-300 p-1">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                `;
+                cont.appendChild(el);
+            });
+        }
+
+        function ownerAddTask() {
+            const title = document.getElementById('om-task-title').value.trim();
+            const points = parseInt(document.getElementById('om-task-points').value);
+            const minutes = parseInt(document.getElementById('om-task-minutes').value);
+            const cat = document.getElementById('om-task-cat').value.trim() || 'عام';
+
+            if (!title || isNaN(points) || isNaN(minutes)) {
+                alert("يرجى كتابة جميع البيانات بصورة صحيحة!");
+                return;
+            }
+
+            tasksList.unshift({ id: Date.now(), title, points, minutes, category: cat });
+            localStorage.setItem('sabiqni_tasks_db', JSON.stringify(tasksList));
+
+            document.getElementById('om-task-title').value = '';
+            document.getElementById('om-task-points').value = '';
+            document.getElementById('om-task-minutes').value = '';
+            document.getElementById('om-task-cat').value = '';
+
+            renderOwnerTasks();
+            renderTasks();
+            alert("تم نشر المهمة الجديدة للجميع بنجاح!");
+        }
+
+        function ownerDeleteTask(index) {
+            if (confirm("هل تريد حذف هذه المهمة؟")) {
+                tasksList.splice(index, 1);
+                localStorage.setItem('sabiqni_tasks_db', JSON.stringify(tasksList));
+                renderOwnerTasks();
+                renderTasks();
+            }
+        }
+
+        // إدارة السوق
+        function renderOwnerMarket() {
+            const cont = document.getElementById('owner-market-items-manage');
+            cont.innerHTML = '';
+            marketItems.forEach((item, index) => {
+                const d = document.createElement('div');
+                d.className = "bg-slate-900 p-2.5 rounded-xl border border-slate-800 flex items-center justify-between text-xs";
+                d.innerHTML = `
+                    <div>
+                        <div class="font-bold text-white">${item.title}</div>
+                        <div class="text-amber-400 font-bold text-[11px]">السعر الحالي: ${item.price} نقطة</div>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <button onclick="ownerChangeItemPrice(${index})" class="bg-amber-500/20 text-amber-300 px-2.5 py-1 rounded-lg text-[10px] font-bold border border-amber-500/30">
+                            تغيير السعر
+                        </button>
+                        <button onclick="ownerDeleteMarketItem(${index})" class="text-rose-400 p-1">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                `;
+                cont.appendChild(d);
+            });
+        }
+
+        function ownerAddMarketItem() {
+            const title = document.getElementById('om-item-title').value.trim();
+            const price = parseInt(document.getElementById('om-item-price').value);
+
+            if (!title || isNaN(price)) {
+                alert("يرجى كتابة اسم السلعة وسعرها!");
+                return;
+            }
+
+            marketItems.push({ id: Date.now(), title, price, icon: 'fa-gift' });
+            localStorage.setItem('sabiqni_market_db', JSON.stringify(marketItems));
+
+            document.getElementById('om-item-title').value = '';
+            document.getElementById('om-item-price').value = '';
+
+            renderOwnerMarket();
+            renderMarket();
+            alert(`تمت إضافة "${title}" إلى السوق!`);
+        }
+
+        function ownerChangeItemPrice(index) {
+            const item = marketItems[index];
+            const newPrice = prompt(`حدد السعر الجديد لـ (${item.title}):`, item.price);
+            if (newPrice && !isNaN(parseInt(newPrice))) {
+                marketItems[index].price = parseInt(newPrice);
+                localStorage.setItem('sabiqni_market_db', JSON.stringify(marketItems));
+                renderOwnerMarket();
+                renderMarket();
+                alert(`تم تحديث السعر بنجاح.`);
+            }
+        }
+
+        function ownerDeleteMarketItem(index) {
+            if (confirm("هل تريد حذف هذه السلعة من السوق؟")) {
+                marketItems.splice(index, 1);
+                localStorage.setItem('sabiqni_market_db', JSON.stringify(marketItems));
+                renderOwnerMarket();
+                renderMarket();
+            }
+        }
+
+        // ================= المهام الجارية للمتسابق =================
+        function renderTasks() {
+            const activeCont = document.getElementById('active-tasks-container');
+            activeCont.innerHTML = '';
+
+            const myActives = activeTasks.filter(t => t.user === currentUser.username);
+            myActives.forEach(task => {
+                const box = document.createElement('div');
+                box.className = "bg-gradient-to-r from-violet-900/60 to-indigo-900/60 border border-violet-500/50 p-3 rounded-xl flex items-center justify-between";
+                box.innerHTML = `
+                    <div>
+                        <div class="text-[10px] font-bold text-violet-300">مهمة قيد الإنجاز:</div>
+                        <div class="font-bold text-xs text-white">${task.title}</div>
+                        <div class="text-[11px] text-amber-400 font-bold mt-0.5">
+                            <i class="fa-solid fa-coins"></i> +${task.points} نقطة | عقوبة التأخر: -${Math.floor(task.points / 2)}
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-end gap-1.5">
+                        <span id="active-timer-${task.id}" class="text-xs bg-slate-900 text-rose-400 font-mono font-bold px-2 py-0.5 rounded border border-rose-500/40">--:--</span>
+                        <button onclick="finishTask(${task.id})" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs px-2.5 py-1 rounded-lg">
+                            أنهيتها <i class="fa-solid fa-check mr-0.5"></i>
+                        </button>
+                    </div>
+                `;
+                activeCont.appendChild(box);
+            });
+
+            const availList = document.getElementById('available-tasks-list');
+            availList.innerHTML = '';
+            tasksList.forEach(task => {
+                const isOngoing = myActives.some(t => t.taskId === task.id);
+                const el = document.createElement('div');
+                el.className = "bg-slate-800/80 border border-slate-700/80 p-3 rounded-xl flex items-center justify-between";
+                el.innerHTML = `
+                    <div>
+                        <div class="flex items-center gap-1.5 mb-1">
+                            <span class="text-[9px] bg-slate-700 text-slate-300 px-1.5 py-0.5 rounded">${task.category}</span>
+                            <span class="text-[10px] text-slate-400"><i class="fa-regular fa-clock"></i> ${task.minutes} دقيقة</span>
+                        </div>
+                        <div class="font-bold text-xs text-white">${task.title}</div>
+                        <div class="text-xs font-black text-amber-400 mt-1">
+                            <i class="fa-solid fa-coins"></i> +${task.points} نقطة
+                        </div>
+                    </div>
+                    <button onclick="startTask(${task.id})" ${isOngoing ? 'disabled' : ''} class="${isOngoing ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-violet-600 hover:bg-violet-500 text-white'} font-bold text-xs px-3 py-1.5 rounded-lg active:scale-95 transition">
+                        ${isOngoing ? 'جارية...' : 'بدء المهمة'}
+                    </button>
+                `;
+                availList.appendChild(el);
+            });
+        }
+
+        function startTask(taskId) {
+            const task = tasksList.find(t => t.id === taskId);
+            if (!task) return;
+
+            const userTask = {
+                id: Date.now(),
+                taskId: task.id,
+                user: currentUser.username,
+                title: task.title,
+                points: task.points,
+                endTime: Date.now() + (task.minutes * 60 * 1000)
+            };
+
+            activeTasks.push(userTask);
+            localStorage.setItem('sabiqni_active_tasks', JSON.stringify(activeTasks));
+            renderTasks();
+            alert(`بدأت مهمة "${task.title}". سابق الوقت لإنجازها!`);
+        }
+
+        function updateTimers() {
+            if (!activeTasks || activeTasks.length === 0) return;
+            let updated = false;
+
+            activeTasks.forEach((t, i) => {
+                const diff = t.endTime - Date.now();
+                const timerEl = document.getElementById(`active-timer-${t.id}`);
+
+                if (diff <= 0) {
+                    const penalty = Math.floor(t.points / 2);
+                    const userObj = users.find(u => u.username === t.user);
+                    if (userObj) {
+                        userObj.points = Math.max(0, userObj.points - penalty);
+                        saveUsers();
+                    }
+                    if (currentUser && currentUser.username === t.user) {
+                        syncUserPoints();
+                        alert(`⏰ انتهى الوقت لمهمة "${t.title}"!\nتم خصم نصف النقاط (-${penalty} نقطة).`);
+                    }
+                    activeTasks.splice(i, 1);
+                    updated = true;
+                } else {
+                    const mins = Math.floor(diff / 60000);
+                    const secs = Math.floor((diff % 60000) / 1000);
+                    if (timerEl) {
+                        timerEl.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+                    }
+                }
+            });
+
+            if (updated) {
+                localStorage.setItem('sabiqni_active_tasks', JSON.stringify(activeTasks));
+                renderTasks();
+            }
+        }
+
+        function finishTask(activeId) {
+            const index = activeTasks.findIndex(t => t.id === activeId);
+            if (index === -1) return;
+            const task = activeTasks[index];
+
+            if (currentUser.role !== 'owner') {
+                const userObj = users.find(u => u.username === currentUser.username);
+                if (userObj) {
+                    userObj.points += task.points;
+                    saveUsers();
+                    syncUserPoints();
+                }
+            }
+
+            activeTasks.splice(index, 1);
+            localStorage.setItem('sabiqni_active_tasks', JSON.stringify(activeTasks));
+            renderTasks();
+            alert(`مبروك! 🎉 كسبت +${task.points} نقطة كاملة!`);
+        }
+
+        // ================= السوق والأسعار =================
+        function renderMarket() {
+            const container = document.getElementById('market-items-list');
+            container.innerHTML = '';
+
+            marketItems.forEach(item => {
+                const div = document.createElement('div');
+                div.className = "bg-slate-800/90 border border-slate-700/70 p-3 rounded-xl flex flex-col justify-between text-center";
+                div.innerHTML = `
+                    <div>
+                        <div class="w-9 h-9 mx-auto bg-slate-900 text-amber-400 rounded-full flex items-center justify-center text-sm mb-1.5">
+                            <i class="fa-solid ${item.icon || 'fa-gift'}"></i>
+                        </div>
+                        <div class="font-bold text-xs text-white mb-1">${item.title}</div>
+                        <div class="text-xs font-black text-amber-400 mb-2">${item.price} نقطة</div>
+                    </div>
+                    <button onclick="buyMarketItem(${item.id})" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs py-1.5 rounded-lg active:scale-95 transition">
+                        شراء
+                    </button>
+                `;
+                container.appendChild(div);
+            });
+
+            const purCont = document.getElementById('purchased-items-list');
+            purCont.innerHTML = '';
+            const myPurchases = purchases.filter(p => p.user === currentUser.username);
+            if (myPurchases.length === 0) {
+                purCont.innerHTML = '<div class="text-[11px] text-slate-500">لم تشترِ أي جوائز بعد.</div>';
+            } else {
+                myPurchases.forEach(p => {
+                    const row = document.createElement('div');
+                    row.className = "text-xs bg-slate-800/80 p-2 rounded-lg flex items-center justify-between text-slate-300";
+                    row.innerHTML = `<span><i class="fa-solid fa-gift text-emerald-400 ml-1"></i> ${p.title}</span><span class="text-[10px] text-slate-500">${p.date}</span>`;
+                    purCont.appendChild(row);
+                });
+            }
+        }
+
+        function buyMarketItem(id) {
+            const item = marketItems.find(m => m.id === id);
+            if (!item) return;
+
+            if (currentUser.role !== 'owner' && currentUser.points < item.price) {
+                alert(`نقاطك (${currentUser.points}) لا تكفي لشراء ${item.title} (${item.price} نقطة)!`);
+                return;
+            }
+
+            if (currentUser.role !== 'owner') {
+                const userObj = users.find(u => u.username === currentUser.username);
+                userObj.points -= item.price;
+                saveUsers();
+                syncUserPoints();
+            }
+
+            purchases.push({
+                user: currentUser.username,
+                title: item.title,
+                date: new Date().toLocaleDateString('ar-SA')
+            });
+            localStorage.setItem('sabiqni_purchases_db', JSON.stringify(purchases));
+            renderMarket();
+            alert(`مبروك! اشتريت "${item.title}" بنجاح!`);
+        }
+
+        function renderRates() {
+            const list = document.getElementById('rates-list');
+            list.innerHTML = '';
+            defaultRates.forEach(r => {
+                const box = document.createElement('div');
+                box.className = "bg-slate-800/80 border border-slate-700/80 p-3 rounded-xl";
+                box.innerHTML = `
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="font-bold text-xs text-white">${r.title}</span>
+                        <span class="text-[10px] font-bold ${r.trend === 'up' ? 'text-emerald-400 bg-emerald-500/10' : 'text-amber-400 bg-amber-500/10'} px-2 py-0.5 rounded">
+                            ${r.rate}
+                        </span>
+                    </div>
+                    <p class="text-[11px] text-slate-400">${r.note}</p>
+                `;
+                list.appendChild(box);
+            });
+        }
+
+        function switchTab(t) {
+            ['tasks', 'prices', 'market', 'suggestions'].forEach(tab => {
+                document.getElementById(`tab-${tab}`).classList.add('hidden');
+                document.getElementById(`btn-tab-${tab}`).className = "nav-btn text-slate-400 flex flex-col items-center text-[10px] font-bold p-1";
+            });
+            document.getElementById(`tab-${t}`).classList.remove('hidden');
+            document.getElementById(`btn-tab-${t}`).className = "nav-btn text-violet-400 flex flex-col items-center text-[10px] font-bold p-1";
+        }
+    </script>
+</body>
+</html>
